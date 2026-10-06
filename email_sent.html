@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Submitted - Diagonkixa</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #0B1B4D;
+            --purple: #6A4DFF;
+            --blue: #28B8FF;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--navy);
+            overflow-x: hidden;
+            color: white;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .hero {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .brand-logo {
+            width: 75px;
+        }
+        /* .brand-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        } */
+
+        .coming-soon {
+            color: var(--blue);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .company-name {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .company-name span {
+            color: var(--blue);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,.75);
+            max-width: 550px;
+            margin-top: 25px;
+        }
+
+        .contact-box {
+            margin-top: 40px;
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.04);
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-box a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .contact-box a:hover {
+            color: var(--blue);
+        }
+
+        /* Right Side Illustration */
+
+        .graphic-wrapper {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: auto;
+        }
+
+        .blob-main {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                var(--purple),
+                var(--blue)
+            );
+            border-radius: 58% 42% 70% 30% / 42% 45% 55% 58%;
+            filter: blur(5px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            background: rgba(106,77,255,.4);
+            border-radius: 50%;
+            top: -40px;
+            left: -40px;
+            filter: blur(25px);
+        }
+
+        .blob-2 {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(40,184,255,.4);
+            border-radius: 50%;
+            bottom: -30px;
+            right: -20px;
+            filter: blur(25px);
+        }
+
+        .glass-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            padding: 30px;
+            border-radius: 24px;
+            background: rgba(255,255,255,.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,.1);
+            text-align: center;
+        }
+
+        .glass-card h5 {
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .glass-card p {
+            color: rgba(255,255,255,.75);
+            margin-bottom: 0;
+        }
+
+        @keyframes float {
+            0%,100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @media(max-width: 991px) {
+
+            .company-name {
+                font-size: 2.8rem;
+            }
+
+            .graphic-wrapper {
+                width: 320px;
+                height: 320px;
+                margin-top: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container hero">
+    <div class="row align-items-center min-vh-100">
+
+        <!-- Left Side -->
+        <div class="col-lg-6 text-center text-lg-start">
+
+            <div class="logo-container">
+                <img src="images/logo.png" alt="Logo" class="brand-logo">
+            </div>
+
+            <h1 class="company-name">
+                DIAGON<span>KIXA</span>
+            </h1>
+
+            <p class="tagline">
+                AI-powered wearables and intelligent home security systems designed to protect you and your family — quietly, reliably, 24/7.
+            </p>
+
+        </div>
+
+        <!-- Right Side -->
+        <div class="col-lg-6">
+
+            <div class="graphic-wrapper">
+
+                <div class="blob-main"></div>
+                <div class="blob-1"></div>
+                <div class="blob-2"></div>
+
+                <div class="glass-card">
+                    <h5>Form submitted successfully!</h5>
+                    <p>
+                        Thank you for reaching out to us. We'll review your submission and get back to you soon.
+                    </p>
+                    <div class="contact-box">
+                        <a href="/#contact-us">
+                            Go Back
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
