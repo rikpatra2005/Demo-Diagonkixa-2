@@ -7,30 +7,392 @@
     <link rel="icon" type="image/png" href="/images/logo.png">
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Three.js for 3D Background Robot -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style2.css">
+
+    <!-- Background Robot & Glassmorphism Styles -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #bg-robot-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        section, .footer {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .hero-section {
+            background: rgba(255, 255, 255, 0.4);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .about-card, .feature-card, .mission-card, .vision-card, 
+        .focus-card, .product-card, .ideal-card, .step-card, 
+        .team-card, .contact-card, .cta-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover, .ideal-card:hover, .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(13, 110, 253, 0.15);
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.85) !important;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+        }
+
+        /* ========================================== */
+        /* PROFESSIONAL AI CHATBOT WIDGET */
+        /* ========================================== */
+        .ai-chatbot-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .chatbot-toggle-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            animation: floatBtn 3s ease-in-out infinite;
+        }
+
+        @keyframes floatBtn {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .chatbot-toggle-btn:hover {
+            animation: none;
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 12px 35px rgba(13, 110, 253, 0.6);
+        }
+
+        .chatbot-toggle-btn canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chatbot-window {
+            position: absolute;
+            bottom: 85px;
+            right: 0;
+            width: 400px;
+            height: 600px;
+            max-height: calc(100vh - 120px);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .chatbot-window.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .chatbot-header {
+            background: white;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .chatbot-robot-display {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            background: white;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .chatbot-robot-display canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .chatbot-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px 10px;
+            width: 100%;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f8f9fa;
+            min-height: 0;
+        }
+
+        .chatbot-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: msgIn 0.3s ease;
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .faq-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            flex-shrink: 0;
+        }
+
+        .faq-btn {
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #0d6efd;
+            color: #0d6efd;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .faq-btn:hover {
+            background: #0d6efd;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .chatbot-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .chatbot-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .chatbot-input-area input:focus {
+            border-color: #0d6efd;
+        }
+
+        .chatbot-input-area button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .chatbot-input-area button:hover {
+            transform: scale(1.1);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #0d6efd;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .chatbot-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.08);
+            border: none;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-close:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-window {
+                width: calc(100vw - 40px);
+                height: calc(100vh - 140px);
+                right: -10px;
+                bottom: 90px;
+            }
+        }
+    </style>
 </head>
 <body>
 
+    <canvas id="bg-robot-canvas"></canvas>
+
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-
             <a class="navbar-brand d-flex align-items-center"
-                href="#overview">
-
+             href="#overview">
                 <div class="logo-wrapper">
 
-                    <img
-                        src="images/logo.png"
-                        alt="Diagonkixa Logo"
-                        class="logo">
-
+                    <img src="images/logo.png"
+                     alt="Diagonkixa Logo" 
+                     class="logo">
                 </div>
 
                 <h4 class="brand-logo mx-2 mb-0">
@@ -39,1160 +401,1114 @@
 
             </a>
 
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
+            <button 
+            class="navbar-toggler"
+             type="button" 
+             data-bs-toggle="collapse"
+              data-bs-target="#navbarNav">
 
                 <span class="navbar-toggler-icon"></span>
-
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-
                 <ul class="navbar-nav ms-auto">
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#overview">Overview</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#about">About Us</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#products">Products</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact-us">Contact</a>
-                    </li>
-
+                    <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact-us">Contact</a></li>
                 </ul>
-
             </div>
-
         </div>
     </nav>
 
     <section id="overview" class="hero-section">
-
         <div class="container">
-
             <div class="row align-items-center">
-
-                <!-- Left Content -->
-
                 <div class="col-lg-6">
-
-                    <span class="hero-tag">
-                        SMART SECURITY SOLUTIONS
-                    </span>
-
-                    <h1 class="hero-title">
-                        Intelligent Security
-                        For Modern Homes
-                        & Businesses
-                    </h1>
-
-                    <p class="hero-description">
-                        Protect what matters most with AI-powered
-                        monitoring, instant alerts, and secure
-                        real-time surveillance.
-                    </p>
-
+                    <span class="hero-tag">SMART SECURITY SOLUTIONS</span>
+                    <h1 class="hero-title">Intelligent Security For Modern Homes & Businesses</h1>
+                    <p class="hero-description">Protect what matters most with AI-powered monitoring, instant alerts, and secure real-time surveillance.</p>
                     <div class="hero-buttons">
 
-                        <a href="#products"
-                        class="btn btn-primary btn-lg me-3">
+                  <!-- Change background and border color directly -->
+                   <a href="#products" class="btn btn-custom-primary btn-lg me-3">Explore Product</a>
+<a href="#contact-us" class="btn btn-custom-outline btn-lg">Contact Us</a>
 
-                            Explore Product
-
-                        </a>
-
-                        <a href="#contact"
-                        class="btn btn-outline-light btn-lg">
-                            Contact Us
-                        </a>
-
-                    </div>
 
                 </div>
-
-                <!-- Right Content -->
-
                 <div class="col-lg-6 text-center">
-
-                    <img
-                        src="images/hero-device.png"
-                        alt="Security Device"
-                        class="img-fluid hero-image">
-
+                    <img src="images/hero-device.png" alt="Security Device" class="img-fluid hero-image" style="filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));">
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section id="about" class="about-section py-5">
-
         <div class="container">
-
             <div class="row align-items-center">
-
                 <div class="col-lg-6">
-
-                    <h3 class="section-tag">
-                        ABOUT US
-                    </h3>
-
-                    <h2 class="section-title mt-3">
-                        Building Smart Solutions
-                        for a Safer Tomorrow
-                    </h2>
-
-                    <p class="about-text">
-                        Diagonkixa is a technology-focused startup
-                        dedicated to creating intelligent solutions
-                        in home security, healthcare monitoring,
-                        and research-driven innovation.
-                    </p>
-
-                    <p class="about-text">
-                        Our work combines electronics,
-                        artificial intelligence,
-                        IoT devices, and real-time communication
-                        systems to solve real-world challenges.
-                    </p>
-
+                    <h3 class="section-tag">ABOUT US</h3>
+                    <h2 class="section-title mt-3">Building Smart Solutions for a Safer Tomorrow</h2>
+                    <p class="about-text">Diagonkixa is a technology-focused startup dedicated to creating intelligent solutions in home security, healthcare monitoring, and research-driven innovation.</p>
+                    <p class="about-text">Our work combines electronics, artificial intelligence, IoT devices, and real-time communication systems to solve real-world challenges.</p>
                 </div>
-
                 <div class="col-lg-6">
-
-                    <div class="about-card">
-
+                    <div class="about-card p-4 rounded-4">
                         <h4>Core Technologies</h4>
-
-                        <ul>
-
+                        <ul class="mt-3">
                             <li>Internet of Things (IoT)</li>
-
                             <li>Artificial Intelligence</li>
-
                             <li>Embedded Electronics</li>
-
                             <li>Cloud Connectivity</li>
-
                             <li>Real-Time Communication</li>
-
                         </ul>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section id="capabilities" class="features-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Why Choose Us
-                </h2>
-
-                <p class="section-description">
-                    Building innovative and secure technology solutions
-                    for businesses and individuals.
-                </p>
-
+                <h2 class="section-title">Why Choose Us</h2>
+                <p class="section-description">Building innovative and secure technology solutions for businesses and individuals.</p>
             </div>
-
             <div class="row g-4">
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="feature-card">
-
-                        <div class="feature-icon">
-                            💡
-                        </div>
-
+                    <div class="feature-card p-4 rounded-4 text-center">
+                        <div class="feature-icon mb-3" style="font-size: 2.5rem;">💡</div>
                         <h4>Innovation</h4>
-
-                        <p>
-                            Delivering modern technology solutions
-                            designed for future challenges.
-                        </p>
-
+                        <p>Delivering modern technology solutions designed for future challenges.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="feature-card">
-
-                        <div class="feature-icon">
-                            🔒
-                        </div>
-
+                    <div class="feature-card p-4 rounded-4 text-center">
+                        <div class="feature-icon mb-3" style="font-size: 2.5rem;"></div>
                         <h4>Security</h4>
-
-                        <p>
-                            Security-first architecture
-                            integrated into every solution.
-                        </p>
-
+                        <p>Security-first architecture integrated into every solution.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="feature-card">
-
-                        <div class="feature-icon">
-                            ⚡
-                        </div>
-
+                    <div class="feature-card p-4 rounded-4 text-center">
+                        <div class="feature-icon mb-3" style="font-size: 2.5rem;">⚡</div>
                         <h4>Scalability</h4>
-
-                        <p>
-                            Solutions designed to grow
-                            with your business.
-                        </p>
-
+                        <p>Solutions designed to grow with your business.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="feature-card">
-
-                        <div class="feature-icon">
-                            🤝
-                        </div>
-
+                    <div class="feature-card p-4 rounded-4 text-center">
+                        <div class="feature-icon mb-3" style="font-size: 2.5rem;">🤝</div>
                         <h4>Customer Focus</h4>
-
-                        <p>
-                            Understanding customer needs
-                            and delivering real value.
-                        </p>
-
+                        <p>Understanding customer needs and delivering real value.</p>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section class="mission-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Mission & Vision
-                </h2>
-
-                <p class="section-description">
-                    Guiding principles that drive our innovation.
-                </p>
-
+                <h2 class="section-title">Mission & Vision</h2>
+                <p class="section-description">Guiding principles that drive our innovation.</p>
             </div>
-
             <div class="row g-4">
-
-                <!-- Mission -->
-
                 <div class="col-lg-6">
-
-                    <div class="mission-card">
-
+                    <div class="mission-card p-4 rounded-4 h-100">
                         <h3>Our Mission</h3>
-
-                        <p>
-                            To develop intelligent and reliable
-                            technology solutions that enhance
-                            safety, healthcare, and everyday life
-                            through innovation and engineering
-                            excellence.
-                        </p>
-
+                        <p>To develop intelligent and reliable technology solutions that enhance safety, healthcare, and everyday life through innovation and engineering excellence.</p>
                     </div>
-
                 </div>
-
-                <!-- Vision -->
-
                 <div class="col-lg-6">
-
-                    <div class="vision-card">
-
+                    <div class="vision-card p-4 rounded-4 h-100">
                         <h3>Our Vision</h3>
-
-                        <p>
-                            To become a globally recognized
-                            technology innovator creating
-                            impactful products in security,
-                            healthcare monitoring, and smart
-                            connected ecosystems.
-                        </p>
-
+                        <p>To become a globally recognized technology innovator creating impactful products in security, healthcare monitoring, and smart connected ecosystems.</p>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section class="focus-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Our Focus Areas
-                </h2>
-
-                <p class="section-description">
-                    We develop smart solutions that address
-                    real-world challenges.
-                </p>
-
+                <h2 class="section-title">Our Focus Areas</h2>
+                <p class="section-description">We develop smart solutions that address real-world challenges.</p>
             </div>
-
             <div class="row g-4">
-
                 <div class="col-md-4">
-
-                    <div class="focus-card">
-
-                        <img
-                            src="images/focus/home-security.jpg"
-                            alt="Home Security"
-                            class="focus-image">
-
-                        <h4>Intelligent Security Solutions</h4>
-
-                        <p>
-                            Smart monitoring, threat detection,
-                            and real-time alert systems for
-                            safer homes and communities.
-                        </p>
-
+                    <div class="focus-card rounded-4 overflow-hidden">
+                        <img src="images/focus/home-security.jpg" alt="Home Security" class="focus-image w-100" style="height: 200px; object-fit: cover;">
+                        <div class="p-4">
+                            <h4>Intelligent Security Solutions</h4>
+                            <p>Smart monitoring, threat detection, and real-time alert systems for safer homes and communities.</p>
+                        </div>
                     </div>
-
                 </div>
-
                 <div class="col-md-4">
-
-                    <div class="focus-card">
-
-                        <img
-                            src="images/focus/healthcare-monitoring.jpg"
-                            alt="Healthcare Monitoring Img"
-                            class="focus-image">
-
-                        <h4>Healthcare Monitoring</h4>
-
-                        <p>
-                            Connected health solutions for
-                            continuous monitoring and timely
-                            decision making.
-                        </p>
-
+                    <div class="focus-card rounded-4 overflow-hidden">
+                        <img src="images/focus/healthcare-monitoring.jpg" alt="Healthcare Monitoring Img" class="focus-image w-100" style="height: 200px; object-fit: cover;">
+                        <div class="p-4">
+                            <h4>Healthcare Monitoring</h4>
+                            <p>Connected health solutions for continuous monitoring and timely decision making.</p>
+                        </div>
                     </div>
-
                 </div>
-
                 <div class="col-md-4">
-
-                    <div class="focus-card">
-
-                        <img
-                            src="images/focus/research-innovation.jpg"
-                            alt="research-innovation img Security"
-                            class="focus-image">
-
-                        <h4>Research & Innovation</h4>
-
-                        <p>
-                            Exploring emerging technologies
-                            and transforming ideas into
-                            practical products.
-                        </p>
-
+                    <div class="focus-card rounded-4 overflow-hidden">
+                        <img src="images/focus/research-innovation.jpg" alt="research-innovation img Security" class="focus-image w-100" style="height: 200px; object-fit: cover;">
+                        <div class="p-4">
+                            <h4>Research & Innovation</h4>
+                            <p>Exploring emerging technologies and transforming ideas into practical products.</p>
+                        </div>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section id="products" class="products-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Our Products
-                </h2>
-
-                <p class="section-description">
-                    Innovative solutions developed to address
-                    real-world safety and monitoring challenges.
-                </p>
-
+                <h2 class="section-title">Our Products</h2>
+                <p class="section-description">Innovative solutions developed to address real-world safety and monitoring challenges.</p>
             </div>
-
             <div class="row justify-content-center">
-
                 <div class="col-lg-8">
-
-                    <div class="product-card">
-
+                    <div class="product-card p-4 rounded-4">
                         <div class="row align-items-center">
-
                             <div class="col-md-5 text-center">
-
-                                <img
-                                    src="images/hero-device.png"
-                                    class="img-fluid product-image"
-                                    alt="Product">
-
+                                <img src="images/hero-device.png" class="img-fluid product-image" alt="Product">
                             </div>
-
                             <div class="col-md-7">
-
-                                <span class="product-badge">
-                                    Patent Filed for Design and Technology 
-                                </span>
-
-                                <h3 class="mt-3">
-                                    Watch-Grid
-                                </h3>
-
-                                <p>
-                                    An intelligent security and monitoring
-                                    solution designed to provide real-time
-                                    threat detection, instant alerts, and
-                                    enhanced situational awareness.
-                                </p>
-
+                                <span class="product-badge bg-primary text-white px-3 py-1 rounded-pill">Patent Filed for Design and Technology</span>
+                                <h3 class="mt-3">Watch-Grid</h3>
+                                <p>An intelligent security and monitoring solution designed to provide real-time threat detection, instant alerts, and enhanced situational awareness.</p>
                                 <ul class="product-features">
-                    
                                     <li>Real-Time Detection & Monitoring</li>
-                    
                                     <li>Instant Alert Notifications</li>
-                    
                                     <li>AI-Assisted Threat Analysis</li>
-                    
                                     <li>Remote Accessibility</li>
-                    
                                     <li>Easy Deployment</li>
-                    
                                     <li>Scalable Architecture</li>
-                    
                                 </ul>
-
-                                 <a href="#contact-us"
-                                    class="btn btn-primary">
-                                    Get In Touch
-                                </a>
-
+                                <a href="#contact-us" class="btn btn-primary">Get In Touch</a>
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
-
         </div>
-
     </section>
 
     <section id="ideal-for" class="ideal-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <span class="section-tag">
-                    DEPLOYMENT AREAS
-                </span>
-
-                <h2 class="section-title mt-2">
-                    Ideal For
-                </h2>
-
-                <p class="section-description">
-                    Watch-Grid adapts to different environments,
-                    providing intelligent monitoring wherever it is needed.
-                </p>
-
+                <span class="section-tag">DEPLOYMENT AREAS</span>
+                <h2 class="section-title mt-2">Ideal For</h2>
+                <p class="section-description">Watch-Grid adapts to different environments, providing intelligent monitoring wherever it is needed.</p>
             </div>
-
             <div class="row g-4">
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="ideal-card">
-
-                        <img
-                            src="images/ideal/home.jpg"
-                            alt="Homes"
-                            class="ideal-image">
-
+                    <div class="ideal-card p-3 rounded-4 text-center">
+                        <img src="images/ideal/home.jpg" alt="Homes" class="ideal-image rounded-3 mb-3 w-100" style="height: 150px; object-fit: cover;">
                         <h4>Homes</h4>
-
-                        <p>
-                            Enhance family safety with
-                            continuous monitoring and
-                            instant notifications.
-                        </p>
-
+                        <p>Enhance family safety with continuous monitoring and instant notifications.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="ideal-card">
-
-                         <img
-                            src="images/ideal/office.jpg"
-                            alt="Offices"
-                            class="ideal-image">
-
+                    <div class="ideal-card p-3 rounded-4 text-center">
+                        <img src="images/ideal/office.jpg" alt="Offices" class="ideal-image rounded-3 mb-3 w-100" style="height: 150px; object-fit: cover;">
                         <h4>Offices</h4>
-
-                        <p>
-                            Improve workplace security
-                            and monitor critical areas
-                            in real time.
-                        </p>
-
+                        <p>Improve workplace security and monitor critical areas in real time.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="ideal-card">
-
-                         <img
-                            src="images/ideal/shop-retail.jpg"
-                            alt="Shops & Retail"
-                            class="ideal-image">
-
+                    <div class="ideal-card p-3 rounded-4 text-center">
+                        <img src="images/ideal/shop-retail.jpg" alt="Shops & Retail" class="ideal-image rounded-3 mb-3 w-100" style="height: 150px; object-fit: cover;">
                         <h4>Shops & Retail</h4>
-
-                        <p>
-                            Protect assets, inventory,
-                            and customer-facing areas
-                            effectively.
-                        </p>
-
+                        <p>Protect assets, inventory, and customer-facing areas effectively.</p>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-3">
-
-                    <div class="ideal-card">
-
-                         <img
-                            src="images/ideal/warehouse.jpg"
-                            alt="Warehouses"
-                            class="ideal-image">
-
+                    <div class="ideal-card p-3 rounded-4 text-center">
+                        <img src="images/ideal/warehouse.jpg" alt="Warehouses" class="ideal-image rounded-3 mb-3 w-100" style="height: 150px; object-fit: cover;">
                         <h4>Warehouses</h4>
-
-                        <p>
-                            Secure inventory and receive
-                            instant alerts for unusual
-                            activity.
-                        </p>
-
+                        <p>Secure inventory and receive instant alerts for unusual activity.</p>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section id="workflow" class="workflow-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    How We Work
-                </h2>
-
-                <p class="section-description">
-                    From concept to deployment,
-                    we follow a structured innovation process.
-                </p>
-
+                <h2 class="section-title">How We Work</h2>
+                <p class="section-description">From concept to deployment, we follow a structured innovation process.</p>
             </div>
+    <style>
+    /* 1. Make all cards the exact same height */
+    .step-card {
+        height: 100%; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    /* 2. Create a fixed-size "slot" for the images */
+    .img-box {
+        height: 120px; /* Fixed height for all images */
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
 
-            <div class="row text-center g-4">
+    /* 3. Force the image to fit inside the slot without stretching */
+    .img-box img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain; 
+    }
 
-                <div class="col-md-3">
+    /* 4. Push the paragraph text to the bottom evenly */
+    .step-card p {
+        margin-top: auto;
+        margin-bottom: 0;
+    }
+</style>
 
-                    <div class="step-card">
-
-                        <div class="step-number">
-                            01
-                        </div>
-
-                        <h5>Identify</h5>
-
-                        <p>
-                            Understand real-world problems.
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <div class="step-card">
-
-                        <div class="step-number">
-                            02
-                        </div>
-
-                        <h5>Research</h5>
-
-                        <p>
-                            Explore technologies and feasibility.
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <div class="step-card">
-
-                        <div class="step-number">
-                            03
-                        </div>
-
-                        <h5>Develop</h5>
-
-                        <p>
-                            Build, test and validate prototypes.
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <div class="step-card">
-
-                        <div class="step-number">
-                            04
-                        </div>
-
-                        <h5>Deploy</h5>
-
-                        <p>
-                            Deliver practical solutions.
-                        </p>
-
-                    </div>
-
-                </div>
-
+<div class="row text-center g-4 justify-content-center">
+    
+    <!-- CARD 01: Changed to col-md-6 col-lg-3 for uniform sizing -->
+    <div class="col-md-6 col-lg-3">
+        <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100">
+            <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">01</div>
+           
+            <div class="img-box">
+                <img src="images/ideal/skull_1.png" alt="Identify image">
             </div>
+             
+            <h5>Identify</h5>
+            <p>Understand real-world problems.</p>
+        </div>
+    </div>
 
+    <!-- CARD 02 -->
+    <div class="col-md-6 col-lg-3">
+        <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100">
+            <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">02</div>
+           
+            <div class="img-box">
+                <img src="images/ideal/Skull.jpg" alt="Research image">
+            </div>
+             
+            <h5>Research</h5>
+            <p>Explore technologies and feasibility.</p>
+        </div>
+    </div>
+
+    <!-- CARD 03 -->
+    <div class="col-md-6 col-lg-3">
+        <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100">
+            <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">03</div>
+            
+            <div class="img-box">
+                <img src="images/ideal/segmented_vessels.png" alt="Develop image">
+            </div>
+             
+            <h5>Develop</h5>
+            <p>Build, test and validate prototypes.</p>
+        </div>
+    </div>
+
+    <!-- CARD 04 -->
+    <div class="col-md-6 col-lg-3">
+        <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100">
+            <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">04</div>
+            
+            <div class="img-box">
+                <img src="images/ideal/fig3 (1).jpg" alt="Deploy image">
+            </div>
+            
+            <h5>Deploy</h5>
+            <p>Deliver practical solutions.</p>
+        </div>
+    </div>
+</div>
+</div>
+</section>
+
+
+
+<section id="workflow" class="workflow-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Our Work</h2>
+            <p class="section-description">Here's what we've been working on.</p>
         </div>
 
-    </section>
+        <!-- ONE ROW FOR ALL CARDS -->
+        <div class="row g-4 justify-content-center">
+
+            <!-- CARD 01 -->
+            <div class="col-12 col-md-4">
+                <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100 text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">01</div>
+
+                    <div class="img-box">
+                        <img src="images/ideal/blandaltmanplot.jpeg" alt="Bland-Altman plot" class="img-fluid">
+                    </div>
+
+                    <h5>XGBoost</h5>
+                    <p>Bland-Altman Plot</p>
+                </div>
+            </div>
+
+            <!-- CARD 02 -->
+            <div class="col-12 col-md-4">
+                <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100 text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">02</div>
+
+                    <div class="img-box">
+                        <img src="images/ideal/patient number vs haemoglobin.jpeg" alt="Patient number vs haemoglobin" class="img-fluid">
+                    </div>
+
+                    <h5>Patient data visualization</h5>
+                    <p>Patient number vs haemoglobin levels</p>
+                </div>
+            </div>
+
+            <!-- CARD 03 -->
+            <div class="col-12 col-md-4">
+                <div class="step-card p-4 rounded-4 bg-white shadow-sm h-100 text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-weight: bold;">03</div>
+
+                    <div class="img-box">
+                        <img src="images/ideal/boxloss.jpeg" alt="Box plot" class="img-fluid">
+                    </div>
+
+                    <h5>Box Plot</h5>
+                    <p>Visualizing data distribution</p>
+                </div>
+            </div>
+
+        </div><!-- /row -->
+    </div><!-- /container -->
+</section>
+
+
 
     <section id="contact" class="team-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Meet Our Team
-                </h2>
-
-                <p class="section-description">
-                    The people driving innovation at
-                    Diagonkixa.
-                </p>
-
+                <h2 class="section-title">Meet Our Team</h2>
+                <p class="section-description">The people driving innovation at Diagonkixa.</p>
             </div>
-
-            <!-- Leadership -->
-
             <div class="row justify-content-center g-4 mb-5">
-
                 <div class="col-md-6 col-lg-4">
-
-                    <div class="team-card leadership">
-
-                        <img src="images/team/director.jpg"
-                            class="team-image"
-                            alt="Director">
-
+                    <div class="team-card leadership p-4 rounded-4 text-center">
+                        <img src="images/team/director.jpg" class="team-image rounded-circle mb-3" alt="Director" style="width: 120px; height: 120px; object-fit: cover;">
                         <h5>Sandeep Patra</h5>
-
-                        <span class="team-role">
-                            Director
-                        </span>
-
+                        <span class="team-role text-primary">Director</span>
                     </div>
-
                 </div>
-
                 <div class="col-md-6 col-lg-4">
-
-                    <div class="team-card leadership">
-
-                        <img src="images/team/cofounder.jpg"
-                            class="team-image"
-                            alt="Co-Founder">
-
+                    <div class="team-card leadership p-4 rounded-4 text-center">
+                        <img src="images/team/cofounder.jpg" class="team-image rounded-circle mb-3" alt="Co-Founder" style="width: 120px; height: 120px; object-fit: cover;">
                         <h5>Lab Kundu</h5>
-
-                        <span class="team-role">
-                            Co-Founder
-                        </span>
-
+                        <span class="team-role text-primary">Co-Founder</span>
                     </div>
-
                 </div>
-
-                <!-- <div class="col-md-6 col-lg-4">
-
-                    <div class="team-card leadership">
-
-                        <img src="images/team/advisor.jpg"
-                            class="team-image"
-                            alt="Advisor">
-
-                        <h5>Dr. Ashis Kumar Dhara</h5>
-
-                        <span class="team-role">
-                            Advisor
-                        </span>
-
-                    </div>
-
-                </div> -->
-
             </div>
-
-            <!-- Team Members -->
-
             <div class="row g-4 justify-content-center">
-
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="team-card">
-                        <img src="images/team/member1.jpg"
-                            class="team-image"
-                            alt="">
+                    <div class="team-card p-3 rounded-4 text-center">
+                        <img src="images/team/member1.jpg" class="team-image rounded-circle mb-2" alt="" style="width: 80px; height: 80px; object-fit: cover;">
                         <h6>Pritam Mandal</h6>
-                        <span class="team-role">
-                            Team Member
-                        </span>
+                        <span class="team-role text-muted small">Team Member</span>
                     </div>
                 </div>
-
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="team-card">
-                        <img src="images/team/member2.jpg"
-                            class="team-image"
-                            alt="">
+                    <div class="team-card p-3 rounded-4 text-center">
+                        <img src="images/team/member2.jpg" class="team-image rounded-circle mb-2" alt="" style="width: 80px; height: 80px; object-fit: cover;">
                         <h6>Rik Patra</h6>
-                        <span class="team-role">
-                            Team Member
-                        </span>
+                        <span class="team-role text-muted small">Team Member</span>
                     </div>
                 </div>
-
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="team-card">
-                        <img src="images/team/member3.jpg"
-                            class="team-image"
-                            alt="">
+                    <div class="team-card p-3 rounded-4 text-center">
+                        <img src="images/team/member3.jpg" class="team-image rounded-circle mb-2" alt="" style="width: 80px; height: 80px; object-fit: cover;">
                         <h6>Saikat Das</h6>
-                        <span class="team-role">
-                            Team Member
-                        </span>
+                        <span class="team-role text-muted small">Team Member</span>
                     </div>
                 </div>
-
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="team-card">
-                        <img src="images/team/member4.jpg"
-                            class="team-image"
-                            alt="">
+                    <div class="team-card p-3 rounded-4 text-center">
+                        <img src="images/team/member4.jpg" class="team-image rounded-circle mb-2" alt="" style="width: 80px; height: 80px; object-fit: cover;">
                         <h6>Susovan Das</h6>
-                        <span class="team-role">
-                            Team Member
-                        </span>
+                        <span class="team-role text-muted small">Team Member</span>
                     </div>
                 </div>
-
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="team-card">
-                        <img src="images/team/member5.jpg"
-                            class="team-image"
-                            alt="">
+                    <div class="team-card p-3 rounded-4 text-center">
+                        <img src="images/team/member5.jpg" class="team-image rounded-circle mb-2" alt="" style="width: 80px; height: 80px; object-fit: cover;">
                         <h6>Aatreya Sengupta</h6>
-                        <span class="team-role">
-                            Team Member
-                        </span>
+                        <span class="team-role text-muted small">Team Member</span>
                     </div>
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <section class="cta-section py-5">
-
         <div class="container">
-
-            <div class="cta-box">
-
-                <h2>
-                    Ready to Build Smarter Solutions?
-                </h2>
-
-                <p>
-                    Let's collaborate to create innovative
-                    technology for security, healthcare,
-                    and future-ready systems.
-                </p>
-
-                <a href="#contact-us"
-                class="btn btn-light btn-lg mt-3">
-
-                    Get In Touch
-
-                </a>
-
+            <div class="cta-box p-5 rounded-4 text-center" style="background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white;">
+                <h2>Ready to Build Smarter Solutions?</h2>
+                <p class="mb-4">Let's collaborate to create innovative technology for security, healthcare, and future-ready systems.</p>
+                <a href="#contact-us" class="btn btn-light btn-lg">Get In Touch</a>
             </div>
-
         </div>
-
     </section>
 
     <section id="contact-us" class="contact-section py-5">
-
         <div class="container">
-
             <div class="text-center mb-5">
-
-                <h2 class="section-title">
-                    Contact Us
-                </h2>
-
-                <p class="section-description">
-                    We'd love to hear from you.
-                </p>
-
+                <h2 class="section-title">Contact Us</h2>
+                <p class="section-description">We'd love to hear from you.</p>
             </div>
-
             <div class="row g-4">
 
-                <!-- Contact Info -->
 
                 <div class="col-lg-5">
 
-                    <div class="contact-card">
+                    <div class="contact-card p-4 rounded-4 h-100">
                         <div class="navbar-brand d-flex align-items-center">
                             <div class="logo-wrapper">
-                                <img
-                                    src="images/logo.png"
-                                    alt="Diagonkixa Logo"
-                                    class="logo"> 
+                                <img src="images/logo.png" alt="Diagonkixa Logo" class="logo" style="height: 40px;"> 
                             </div>
-                            <h4 class="brand-logo mx-2 mb-0">
-                                Diagonk<span class="brand-highlight">ixa</span>
-                            </h4>
-                        
+                            <h4 class="brand-logo mx-2 mb-0">Diagonk<span class="brand-highlight">ixa</span></h4>
                         </div>
-
                         <hr>
-
-                       <div class="contact-item">
-                            <i class="bi bi-envelope-fill"></i>
-                            <span>
-                                <a href="mailto:contact@diagonkixa.com">
-                                    contact@diagonkixa.com
-                                </a>
-                            </span>
+                        <div class="contact-item mb-3 d-flex align-items-center gap-3">
+                            <i class="bi bi-envelope-fill text-primary fs-5"></i>
+                            <span><a href="mailto:contact@diagonkixa.com" class="text-decoration-none text-dark">contact@diagonkixa.com</a></span>
                         </div>
-
-                        <div class="contact-item">
-                            <i class="bi bi-telephone-fill"></i>
-                            <span>
-                                <a href="tel:+919330797616">
-                                    (+91) 93307 97616
-                                </a>
-                            </span>
+                        <div class="contact-item mb-3 d-flex align-items-center gap-3">
+                            <i class="bi bi-telephone-fill text-primary fs-5"></i>
+                            <span><a href="tel:+919330797616" class="text-decoration-none text-dark">(+91) 93307 97616</a></span>
                         </div>
-
-                        <div class="contact-item">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            <span>
-                                Chhinamore, Singur, Hooghly<br>
-                                West Bengal, India, 712223
-                            </span>
+                        <div class="contact-item d-flex align-items-start gap-3">
+                            <i class="bi bi-geo-alt-fill text-primary fs-5 mt-1"></i>
+                            <span>Chhinamore, Singur, Hooghly<br>West Bengal, India, 712223</span>
                         </div>
-
                     </div>
-
                 </div>
-
-                <!-- Contact Form -->
-
                 <div class="col-lg-7">
-
-                    <div class="contact-card">
-
+                    <div class="contact-card p-4 rounded-4">
                         <form action="https://api.web3forms.com/submit" method="POST">
                             <input type="hidden" name="access_key" value="e351c9cd-4431-4731-ba60-d21269a68922">
                             <div class="row">
-
                                 <div class="col-md-6 mb-3">
-
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        placeholder="Your Name"
-                                        name="name">
-                                        
-
+                                    <input type="text" class="form-control py-3" placeholder="Your Name" name="name" required>
                                 </div>
-
                                 <div class="col-md-6 mb-3">
-
-                                    <input
-                                        type="email"
-                                        class="form-control"
-                                        placeholder="Email Address"
-                                        name="email">
-
+                                    <input type="email" class="form-control py-3" placeholder="Email Address" name="email" required>
                                 </div>
-
                             </div>
-
                             <div class="mb-3">
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Subject"
-                                    name="subject">
-
+                                <input type="text" class="form-control py-3" placeholder="Subject" name="subject" required>
                             </div>
-
                             <div class="mb-3">
-
-                                <textarea
-                                    rows="5"
-                                    class="form-control"
-                                    placeholder="Your Message"
-                                    name="message"></textarea>
-
+                                <textarea rows="5" class="form-control" placeholder="Your Message" name="message" required></textarea>
                             </div>
-
-                            <button
-                                class="btn btn-primary"
-                                type="submit">
-
-                                Send Message
-
-                            </button>
-
+                            <button class="btn btn-primary btn-lg w-100" type="submit">Send Message</button>
                         </form>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
-    <footer class="footer">
-
+    <footer class="footer py-5">
         <div class="container">
-
             <div class="row gy-4 gx-5">
-
-                <!-- Company -->
-
                 <div class="col-lg-4">
-
                     <div class="d-flex align-items-center mb-3">
-
                         <div class="logo-wrapper">
-
-                            <img src="images/logo.png"
-                                class="logo"
-                                alt="Logo">
-
+                            <img src="images/logo.png" class="logo" alt="Logo" style="height: 40px;">
                         </div>
-
-                        <h4 class="brand-logo mx-2 mb-0">
-                            Diagonk<span class="brand-highlight">ixa</span>
-                        </h4>
-
+                        <h4 class="brand-logo mx-2 mb-0">Diagonk<span class="brand-highlight">ixa</span></h4>
                     </div>
-
-                    <p>
-                        Building smart solutions in
-                        home security, healthcare
-                        monitoring, and research-driven
-                        innovation.
-                    </p>
-
+                    <p class="text-muted">Building smart solutions in home security, healthcare monitoring, and research-driven innovation.</p>
                 </div>
-
-                <!-- Quick Links -->
-
                 <div class="col-6 col-md-4 col-lg-2">
-
                     <h5>Links</h5>
-
-                    <ul class="footer-links">
-
-                        <li><a href="#overview">Overview</a></li>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#products">Products</a></li>
-                        <li><a href="#contact-us">Contact</a></li>
-
+                    <ul class="footer-links list-unstyled">
+                        <li><a href="#overview" class="text-decoration-none text-muted">Overview</a></li>
+                        <li><a href="#about" class="text-decoration-none text-muted">About</a></li>
+                        <li><a href="#products" class="text-decoration-none text-muted">Products</a></li>
+                        <li><a href="#contact-us" class="text-decoration-none text-muted">Contact</a></li>
                     </ul>
-
                 </div>
-
-                <!-- Product -->
-
                 <div class="col-6 col-md-4 col-lg-3">
-
                     <h5>Products</h5>
-
-                    <ul class="footer-links">
-
-                        <li>Watch-Grid</li>
-
+                    <ul class="footer-links list-unstyled">
+                        <li class="text-muted">Watch-Grid</li>
                     </ul>
-
                 </div>
-
-                <!-- Contact -->
-
                 <div class="col-md-4 col-lg-3">
-
-                    <div class="contact-item">
-                        <i class="bi bi-envelope-fill"></i>
-                        <span>
-                            <a href="mailto:contact@diagonkixa.com">
-                                contact@diagonkixa.com
-                            </a>
-                        </span>
+                    <div class="contact-item mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-envelope-fill text-primary"></i>
+                        <span><a href="mailto:contact@diagonkixa.com" class="text-decoration-none text-muted small">contact@diagonkixa.com</a></span>
                     </div>
-
-                    <div class="contact-item">
-                        <i class="bi bi-telephone-fill"></i>
-                        <span>
-                            <a href="tel:+919330797616">
-                                (+91) 93307 97616
-                            </a>
-                        </span>
+                    <div class="contact-item mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-telephone-fill text-primary"></i>
+                        <span><a href="tel:+919330797616" class="text-decoration-none text-muted small">(+91) 93307 97616</a></span>
                     </div>
-
-                    <div class="contact-item">
-                        <i class="bi bi-geo-alt-fill"></i>
-                        <span>
-                            Chhinamore, Singur, Hooghly<br>
-                            West Bengal, India, 712223
-                        </span>
+                    <div class="contact-item d-flex align-items-start gap-2">
+                        <i class="bi bi-geo-alt-fill text-primary mt-1"></i>
+                        <span class="text-muted small">Chhinamore, Singur, Hooghly<br>West Bengal, India, 712223</span>
                     </div>
-
                 </div>
-
             </div>
-
-            <hr class="footer-divider">
-
+            <hr class="my-4">
             <div class="text-center">
-
-                <p class="mb-0">
-                    © 2026 Diagonkixa. All Rights Reserved.
-                </p>
-
+                <p class="mb-0 text-muted small">© 2026 Diagonkixa. All Rights Reserved.</p>
             </div>
-
         </div>
-
     </footer>
 
     <button id="backToTop" class="back-to-top">
-
         <i class="bi bi-arrow-up"></i>
-
     </button>
 
+    <!-- ========================================== -->
+    <!-- PROFESSIONAL AI CHATBOT WIDGET -->
+    <!-- ========================================== -->
+    <div class="ai-chatbot-widget">
+        <div class="chatbot-window" id="chatbot-window">
+            <div class="chatbot-header">
+                <button class="chatbot-close" id="chatbot-close"><i class="bi bi-x-lg"></i></button>
+                
+                <!-- Interactive Robot Eyes Display - Fully Visible -->
+                <div class="chatbot-robot-display">
+                    <canvas id="chatbot-robot-eyes-canvas"></canvas>
+                </div>
+                
+                <div class="chatbot-header-info">
+                </div>
+            </div>
+            
+            <!-- FAQ Quick Buttons -->
+            <div class="faq-buttons">
+                <button class="faq-btn" data-faq="about">About Diagonkixa</button>
+                <button class="faq-btn" data-faq="product">Watch-Grid</button>
+                <button class="faq-btn" data-faq="deployment">Deployment</button>
+                <button class="faq-btn" data-faq="contact">Contact Us</button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="message bot-message">
+                    Hello! I'm the Diagonkixa AI Assistant. 👋 How can I help you with our smart security solutions today?
+                </div>
+            </div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Type your message..." autocomplete="off">
+                <button id="chatbot-send"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+        <button class="chatbot-toggle-btn" id="chatbot-toggle-btn">
+            <canvas id="chatbot-head-canvas" width="70" height="70"></canvas>
+        </button>
+    </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/script.js"></script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('bg-robot-canvas');
+            if (!canvas) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 6);
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+            const pointLight = new THREE.PointLight(0x00d2ff, 0.6, 10);
+            pointLight.position.set(-2, 2, 3);
+            scene.add(pointLight);
+
+            const robot = new THREE.Group();
+            scene.add(robot);
+
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0d6efd, roughness: 0.3, metalness: 0.6 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.8 });
+            const glowMat = new THREE.MeshStandardMaterial({ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.8 });
+
+            const headGroup = new THREE.Group();
+            headGroup.position.y = 1.2;
+            robot.add(headGroup);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), bodyMat);
+            headGroup.add(head);
+
+            const leftEyeGroup = new THREE.Group();
+            leftEyeGroup.position.set(-0.45, 0.1, 1.05);
+            headGroup.add(leftEyeGroup);
+
+            const rightEyeGroup = new THREE.Group();
+            rightEyeGroup.position.set(0.45, 0.1, 1.05);
+            headGroup.add(rightEyeGroup);
+
+            const eyeSocketGeo = new THREE.SphereGeometry(0.32, 16, 16);
+            const leftSocket = new THREE.Mesh(eyeSocketGeo, darkMat);
+            leftEyeGroup.add(leftSocket);
+            const rightSocket = new THREE.Mesh(eyeSocketGeo, darkMat);
+            rightEyeGroup.add(rightSocket);
+
+            const pupilGeo = new THREE.SphereGeometry(0.16, 16, 16);
+            const leftPupil = new THREE.Mesh(pupilGeo, glowMat);
+            leftPupil.position.z = 0.28;
+            leftEyeGroup.add(leftPupil);
+            const rightPupil = new THREE.Mesh(pupilGeo, glowMat);
+            rightPupil.position.z = 0.28;
+            rightEyeGroup.add(rightPupil);
+
+            const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6), darkMat);
+            antenna.position.y = 1.3;
+            headGroup.add(antenna);
+            const antTip = new THREE.Mesh(new THREE.SphereGeometry(0.1), glowMat);
+            antTip.position.y = 0.3;
+            antenna.add(antTip);
+
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 1.5, 32), bodyMat);
+            body.position.y = -0.5;
+            robot.add(body);
+
+            const core = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), glowMat);
+            core.position.set(0, -0.5, 0.85);
+            robot.add(core);
+
+            let mouseX = 0, mouseY = 0;
+            
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            function updateRobotPosition() {
+                if (window.innerWidth < 768) {
+                    robot.position.set(0, -2.8, 0);
+                    robot.scale.set(0.65, 0.65, 0.65);
+                } else {
+                    robot.position.set(3.2, -1.8, 0);
+                    robot.scale.set(1, 1, 1);
+                }
+            }
+            updateRobotPosition();
+
+            let time = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.02;
+
+                robot.position.y += Math.sin(time) * 0.002;
+
+                const targetHeadRotY = mouseX * 0.4;
+                const targetHeadRotX = -mouseY * 0.3;
+                headGroup.rotation.y += (targetHeadRotY - headGroup.rotation.y) * 0.08;
+                headGroup.rotation.x += (targetHeadRotX - headGroup.rotation.x) * 0.08;
+
+                const targetPupilX = mouseX * 0.18;
+                const targetPupilY = mouseY * 0.12;
+                
+                leftPupil.position.x += (targetPupilX - leftPupil.position.x) * 0.1;
+                leftPupil.position.y += (targetPupilY - leftPupil.position.y) * 0.1;
+                rightPupil.position.x += (targetPupilX - rightPupil.position.x) * 0.1;
+                rightPupil.position.y += (targetPupilY - rightPupil.position.y) * 0.1;
+
+                if (Math.random() < 0.008) {
+                    leftPupil.scale.y = 0.1;
+                    rightPupil.scale.y = 0.1;
+                    setTimeout(() => {
+                        leftPupil.scale.y = 1;
+                        rightPupil.scale.y = 1;
+                    }, 150);
+                }
+
+                glowMat.emissiveIntensity = 0.6 + Math.sin(time * 3) * 0.3;
+                core.scale.setScalar(1 + Math.sin(time * 2) * 0.05);
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                updateRobotPosition();
+            });
+
+            const backToTopBtn = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // ==========================================
+            // CHATBOT TOGGLE BUTTON HEAD
+            // ==========================================
+            const chatCanvas = document.getElementById('chatbot-head-canvas');
+            const chatCtx = chatCanvas.getContext('2d');
+            let chatMouseX = 0, chatMouseY = 0;
+            let chatTargetX = 0, chatTargetY = 0;
+            let chatBlinkState = 1;
+            let chatNextBlink = 2;
+            
+            const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+            const chatbotWindow = document.getElementById('chatbot-window');
+            const chatbotClose = document.getElementById('chatbot-close');
+            const chatbotInput = document.getElementById('chatbot-input');
+            const chatbotSend = document.getElementById('chatbot-send');
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const faqButtons = document.querySelectorAll('.faq-btn');
+
+            chatbotToggleBtn.addEventListener('mousemove', (e) => {
+                const rect = chatCanvas.getBoundingClientRect();
+                chatTargetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                chatTargetY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            });
+
+            chatbotToggleBtn.addEventListener('mouseleave', () => {
+                chatTargetX = 0;
+                chatTargetY = 0;
+            });
+
+            function drawChatbotHead() {
+                const width = chatCanvas.width;
+                const height = chatCanvas.height;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = width / 2 - 4;
+
+                chatCtx.clearRect(0, 0, width, height);
+
+                chatMouseX += (chatTargetX - chatMouseX) * 0.1;
+                chatMouseY += (chatTargetY - chatMouseY) * 0.1;
+
+                const gradient = chatCtx.createRadialGradient(centerX - 10, centerY - 10, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(1, '#0056b3');
+                
+                chatCtx.beginPath();
+                chatCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                chatCtx.fillStyle = gradient;
+                chatCtx.fill();
+
+                const eyeSpacing = 12;
+                const eyeRadius = 9;
+                const pupilRadius = 5;
+                const eyeY = centerY - 5;
+
+                if (time > chatNextBlink) {
+                    chatBlinkState = 0.1;
+                    chatNextBlink = time + Math.random() * 3 + 2;
+                }
+                if (chatBlinkState < 1) {
+                    chatBlinkState += 0.15;
+                    if (chatBlinkState > 1) chatBlinkState = 1;
+                }
+
+                const eyeScale = chatBlinkState;
+
+                chatCtx.beginPath();
+                chatCtx.arc(centerX - eyeSpacing, eyeY, eyeRadius * eyeScale, 0, Math.PI * 2);
+                chatCtx.fillStyle = 'white';
+                chatCtx.fill();
+
+                chatCtx.beginPath();
+                chatCtx.arc(centerX + eyeSpacing, eyeY, eyeRadius * eyeScale, 0, Math.PI * 2);
+                chatCtx.fillStyle = 'white';
+                chatCtx.fill();
+
+                const pupilMoveX = chatMouseX * 3;
+                const pupilMoveY = chatMouseY * 2;
+
+                chatCtx.beginPath();
+                chatCtx.arc(centerX - eyeSpacing + pupilMoveX, eyeY + pupilMoveY, pupilRadius * eyeScale, 0, Math.PI * 2);
+                chatCtx.fillStyle = '#0d6efd';
+                chatCtx.fill();
+
+                chatCtx.beginPath();
+                chatCtx.arc(centerX + eyeSpacing + pupilMoveX, eyeY + pupilMoveY, pupilRadius * eyeScale, 0, Math.PI * 2);
+                chatCtx.fillStyle = '#0d6efd';
+                chatCtx.fill();
+
+                if (eyeScale > 0.5) {
+                    chatCtx.beginPath();
+                    chatCtx.arc(centerX - eyeSpacing + pupilMoveX - 2, eyeY + pupilMoveY - 2, 2, 0, Math.PI * 2);
+                    chatCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    chatCtx.fill();
+
+                    chatCtx.beginPath();
+                    chatCtx.arc(centerX + eyeSpacing + pupilMoveX - 2, eyeY + pupilMoveY - 2, 2, 0, Math.PI * 2);
+                    chatCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    chatCtx.fill();
+                }
+
+                requestAnimationFrame(drawChatbotHead);
+            }
+
+            drawChatbotHead();
+
+            // ==========================================
+            // CHATBOT ROBOT EYES - ELONGATED CAPSULES + PROPER FIT
+            // ==========================================
+            const robotEyesCanvas = document.getElementById('chatbot-robot-eyes-canvas');
+            const robotEyesCtx = robotEyesCanvas.getContext('2d');
+            
+            let robotEyesMouseX = 0, robotEyesMouseY = 0;
+            let robotEyesTargetX = 0, robotEyesTargetY = 0;
+            let robotEyesBlinkState = 1;
+            let robotEyesNextBlink = 2;
+
+            function resizeRobotEyesCanvas() {
+                const container = robotEyesCanvas.parentElement;
+                robotEyesCanvas.width = container.clientWidth * 2;
+                robotEyesCanvas.height = container.clientHeight * 2;
+            }
+            resizeRobotEyesCanvas();
+            window.addEventListener('resize', resizeRobotEyesCanvas);
+
+            chatbotWindow.addEventListener('mousemove', (e) => {
+                const rect = robotEyesCanvas.getBoundingClientRect();
+                robotEyesTargetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                robotEyesTargetY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            });
+
+            chatbotWindow.addEventListener('mouseleave', () => {
+                robotEyesTargetX = 0;
+                robotEyesTargetY = 0;
+            });
+
+            // Helper function to draw an elongated capsule (pill shape)
+            function drawCapsule(ctx, x, y, width, height, rotation, color) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotation);
+                
+                const radius = width / 2;
+                
+                ctx.beginPath();
+                ctx.arc(0, -height/2 + radius, radius, Math.PI, 0);
+                ctx.lineTo(radius, height/2 - radius);
+                ctx.arc(0, height/2 - radius, radius, 0, Math.PI);
+                ctx.lineTo(-radius, -height/2 + radius);
+                ctx.closePath();
+                
+                ctx.fillStyle = color;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            // Draw robot eyes with SMALLER circle and MORE ELONGATED capsule eyes
+            function drawRobotEyesInChatbot() {
+                const width = robotEyesCanvas.width;
+                const height = robotEyesCanvas.height;
+
+                robotEyesCtx.clearRect(0, 0, width, height);
+
+                // Smooth mouse following
+                robotEyesMouseX += (robotEyesTargetX - robotEyesMouseX) * 0.1;
+                robotEyesMouseY += (robotEyesTargetY - robotEyesMouseY) * 0.1;
+
+                // White background
+                robotEyesCtx.fillStyle = 'white';
+                robotEyesCtx.fillRect(0, 0, width, height);
+
+                // Draw SMALLER circle - compact and fits well
+                const circleCenterX = width / 2;
+                const circleCenterY = height * 1.05;
+                const circleRadius = width * 0.42;
+
+                robotEyesCtx.beginPath();
+                robotEyesCtx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
+                robotEyesCtx.strokeStyle = '#1a1a1a';
+                robotEyesCtx.lineWidth = 2.5;
+                robotEyesCtx.stroke();
+
+                // Blinking logic
+                if (time > robotEyesNextBlink) {
+                    robotEyesBlinkState = 0.1;
+                    robotEyesNextBlink = time + Math.random() * 3 + 2;
+                }
+                if (robotEyesBlinkState < 1) {
+                    robotEyesBlinkState += 0.15;
+                    if (robotEyesBlinkState > 1) robotEyesBlinkState = 1;
+                }
+
+                const eyeScale = robotEyesBlinkState;
+
+                // Subtle mouse tracking for eyes
+                const pupilMoveX = robotEyesMouseX * (width * 0.025);
+                const pupilMoveY = robotEyesMouseY * (height * 0.02);
+
+                // MORE ELONGATED CAPSULE eye dimensions (taller, narrower pill shape)
+                const capsuleWidth = width * 0.055;   // NARROWER width
+                const capsuleHeight = height * 0.24 * eyeScale;  // TALLER height (more elongated)
+                const tiltAngle = -0.55; // Diagonal tilt (~-45 degrees)
+
+                // Blue capsule eye position - upper-center-left
+                const blueEyeX = width * 0.42 + pupilMoveX;
+                const blueEyeY = height * 0.42 + pupilMoveY;
+
+                // Purple capsule eye position - upper-right
+                const purpleEyeX = width * 0.62 + pupilMoveX;
+                const purpleEyeY = height * 0.32 + pupilMoveY;
+
+                // Draw Blue elongated capsule eye (tilted)
+                drawCapsule(robotEyesCtx, blueEyeX, blueEyeY, capsuleWidth, capsuleHeight, tiltAngle, '#2196f3');
+
+                // Draw Purple elongated capsule eye (tilted)
+                drawCapsule(robotEyesCtx, purpleEyeX, purpleEyeY, capsuleWidth, capsuleHeight, tiltAngle, '#5c52e8');
+
+                requestAnimationFrame(drawRobotEyesInChatbot);
+            }
+
+            drawRobotEyesInChatbot();
+
+            // Chatbot toggle functionality
+            function toggleChatbot() {
+                chatbotWindow.classList.toggle('active');
+                if (chatbotWindow.classList.contains('active')) {
+                    setTimeout(() => chatbotInput.focus(), 300);
+                }
+            }
+
+            chatbotToggleBtn.addEventListener('click', toggleChatbot);
+            chatbotClose.addEventListener('click', toggleChatbot);
+
+            const faqData = {
+                about: {
+                    question: "What is Diagonkixa?",
+                    answer: "Diagonkixa is a technology-focused startup dedicated to creating intelligent solutions in home security, healthcare monitoring, and research-driven innovation. We combine IoT, AI, embedded electronics, and real-time communication systems. We're based in Chhinamore, Singur, Hooghly, West Bengal, India."
+                },
+                product: {
+                    question: "Tell me about Watch-Grid",
+                    answer: "Watch-Grid is our flagship intelligent security solution! 🛡️ It provides real-time threat detection, instant alerts, and enhanced situational awareness. Features include AI-assisted threat analysis, remote accessibility, and scalable architecture. Patent-filed and ideal for homes, offices, retail, and warehouses."
+                },
+                deployment: {
+                    question: "How does deployment work?",
+                    answer: "We follow a structured process: 1) Identify the problem, 2) Research feasibility, 3) Develop prototypes, 4) Deploy solution. Watch-Grid ensures easy deployment with comprehensive support. We also offer custom solutions tailored to specific business needs!"
+                },
+                contact: {
+                    question: "How can I contact you?",
+                    answer: " Email: contact@diagonkixa.com\n📞 Phone: (+91) 93307 97616\n Location: Chhinamore, Singur, Hooghly, West Bengal, India, 712223\n\nOr use the 'Get In Touch' form. We're open to collaborations and partnerships!"
+                }
+            };
+
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                messageDiv.textContent = text;
+                chatbotMessages.appendChild(messageDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            function showTyping() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typing-indicator';
+                typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                chatbotMessages.appendChild(typingDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            function removeTyping() {
+                const typingDiv = document.getElementById('typing-indicator');
+                if (typingDiv) typingDiv.remove();
+            }
+
+            faqButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const faqKey = btn.getAttribute('data-faq');
+                    const faq = faqData[faqKey];
+                    
+                    addMessage(faq.question, true);
+                    showTyping();
+                    
+                    setTimeout(() => {
+                        removeTyping();
+                        addMessage(faq.answer, false);
+                    }, 800);
+                });
+            });
+
+            function getBotResponse(userText) {
+                const text = userText.toLowerCase();
+                
+                if (text.includes('hello') || text.includes('hi') || text.includes('hey')) {
+                    return "Hello there! 👋 How can I assist you with Diagonkixa's smart security solutions today?";
+                } else if (text.includes('what is diagonkixa') || text.includes('about diagonkixa')) {
+                    return faqData.about.answer;
+                } else if (text.includes('watch-grid') || text.includes('product')) {
+                    return faqData.product.answer;
+                } else if (text.includes('deploy') || text.includes('deployment')) {
+                    return faqData.deployment.answer;
+                } else if (text.includes('contact') || text.includes('email') || text.includes('phone')) {
+                    return faqData.contact.answer;
+                } else if (text.includes('price') || text.includes('cost')) {
+                    return "For pricing, please contact us directly or use the contact form. We offer tailored solutions!";
+                } else if (text.includes('thank')) {
+                    return "You're welcome! 😊 Feel free to ask anything else.";
+                } else {
+                    return "Great question! Try clicking the FAQ buttons above for quick answers, or type your question and I'll help!";
+                }
+            }
+
+            function handleSend() {
+                const text = chatbotInput.value.trim();
+                if (!text) return;
+
+                addMessage(text, true);
+                chatbotInput.value = '';
+                showTyping();
+
+                setTimeout(() => {
+                    removeTyping();
+                    const response = getBotResponse(text);
+                    addMessage(response, false);
+                }, 1000);
+            }
+
+            chatbotSend.addEventListener('click', handleSend);
+            chatbotInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSend();
+            });
+        });
+    </script>
 </body>
 </html>
